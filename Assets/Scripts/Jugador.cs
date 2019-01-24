@@ -43,7 +43,7 @@ public class Jugador : MonoBehaviourPunCallbacks
     /// </summary>
     public void Pagar(bool button)
     {
-        if (button) Debug.Log("Se pagó hoy");
+        if(button) Debug.Log("Se pagó hoy");
         else        Debug.Log("No se pagó hoy");
         pago[dias] = button;
         if (pago[dias])
