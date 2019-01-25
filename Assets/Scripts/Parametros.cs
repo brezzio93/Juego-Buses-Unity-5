@@ -61,9 +61,6 @@ public class Parametros : MonoBehaviour {
         param.ganancia = ganancia.text;
         param.cantidad = cantidad.text;
 
-        int cant = System.Convert.ToInt32(Parametros.param.cantidad);
-        if (cant > 20)
-            txt.text = "Advertencia: La Sala no puede tener más de 20 Jugadores";
 
     }
 }
