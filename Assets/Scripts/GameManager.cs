@@ -205,7 +205,7 @@ namespace Com.MyCompany.MyGame
                 PhotonNetwork.JoinLobby();
                 Debug.Log("CreateOrJoin " + createRoom);
                 if (createRoom == true) SwitchScenes(4);
-                else //SwitchScenes(2);
+                else //SwitchScenes(3);
                     PhotonNetwork.JoinRandomRoom();
             }
         }
