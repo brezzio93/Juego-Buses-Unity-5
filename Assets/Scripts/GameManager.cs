@@ -26,7 +26,6 @@ namespace Com.MyCompany.MyGame
         private Scene currentScene;
         private string SceneName;
         
-
         private static List<string> RoomList = new List<string>();
         ExitGames.Client.Photon.Hashtable CustomProps = new ExitGames.Client.Photon.Hashtable();
 
@@ -191,7 +190,9 @@ namespace Com.MyCompany.MyGame
         /// <summary>
         /// Función utilizada para saber si el jugador creará o se unirá a una sala
         /// </summary>
-        /// <param name="create"></param>
+        /// <param name="create">
+        /// Parametro booleano que indica si se está 
+        /// </param>
         public void GoLogin(bool create)
         {
             createRoom = create;
