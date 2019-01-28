@@ -39,14 +39,42 @@ public class Jugador : MonoBehaviourPunCallbacks
     }
 
     /// <summary>
+    /// Revisa que el jugador pague su pasaje y en base a eso calcula la probabilidad de llegar junto con los 
+    /// calculos del pasaje de bus
+    /// </summary>
+    /// <param name="button"></param>
+    public void OtroDia(bool button)
+    {
+        if (dias < 9)
+        {
+            Pagar(button);
+            Llegar();
+            dias++;
+            Debug.Log("Comienza Día " + (dias + 1));
+            Debug.Log("Saldo " + PhotonNetwork.LocalPlayer.NickName + ": " + billetera);
+            t_dias.text = "Día " + System.Convert.ToString(dias + 1);
+        }
+        else
+        {
+            Debug.Log("Finalizado");
+            PhotonNetwork.LeaveRoom();
+            SceneManager.LoadScene(0);
+        }
+    }
+
+
+
+
+    /// <summary>
     /// Se añade la selección del jugador a su historial de pago y se descuenta saldo de la billetera del jugador 
     /// </summary>
     public void Pagar(bool button)
     {
         if(button) Debug.Log("Se pagó hoy");
         else        Debug.Log("No se pagó hoy");
-        pago[dias] = button;
-        if (pago[dias])
+        //pago[dias] = button;
+        PhotonNetwork.LocalPlayer.CustomProperties["paga"] = button;
+        if (PhotonNetwork.LocalPlayer.CustomProperties["paga"].Equals(true))
             billetera = billetera-System.Convert.ToInt32(PhotonNetwork.CurrentRoom.CustomProperties["precio"]);
         
 
@@ -54,8 +82,8 @@ public class Jugador : MonoBehaviourPunCallbacks
 
     public void Llegar()
     {
-        llega[dias]=CalcularViaje();
-        if (llega[dias])
+        PhotonNetwork.LocalPlayer.CustomProperties["llega"] = CalcularViaje();
+        if (PhotonNetwork.LocalPlayer.CustomProperties["llega"].Equals(true))
             billetera = billetera+ System.Convert.ToInt32(PhotonNetwork.CurrentRoom.CustomProperties["ganancia"]);        
     }
 
@@ -81,26 +109,5 @@ public class Jugador : MonoBehaviourPunCallbacks
 
     }
 
-    /// <summary>
-    /// Revisa que el jugador pague su pasaje y en base a eso calcula la probabilidad de llegar junto con los 
-    /// calculos del pasaje de bus
-    /// </summary>
-    /// <param name="button"></param>
-    public void OtroDia(bool button)
-    {        
-        if (dias < 9) {
-            Pagar(button);
-            Llegar();
-            dias++;
-            Debug.Log("Comienza Día " + (dias+1));
-            Debug.Log("Saldo "+PhotonNetwork.LocalPlayer.NickName+": "+ billetera);
-            t_dias.text = "Día " + System.Convert.ToString(dias+1);
-        }
-        else
-        {
-            Debug.Log("Finalizado");
-            PhotonNetwork.LeaveRoom();
-            SceneManager.LoadScene(0);
-        }
-    }
+    
 }

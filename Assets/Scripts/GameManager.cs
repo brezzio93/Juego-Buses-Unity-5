@@ -117,9 +117,9 @@ namespace Com.MyCompany.MyGame
 
         public void LeaveRoom()
         {
-            PhotonNetwork.LeaveRoom();
+            if (PhotonNetwork.InRoom)
+                PhotonNetwork.LeaveRoom();
         }
-
 
         public void SwitchScenes(int idScene)
         {
@@ -152,27 +152,7 @@ namespace Com.MyCompany.MyGame
             }
         }
 
-        public void SetPlayerProperties()
-        {
-            ExitGames.Client.Photon.Hashtable PlayerCustomProps = new ExitGames.Client.Photon.Hashtable();
-            CustomProps["monto"] = Parametros.param.monto;
-            CustomProps["precio"] = Parametros.param.precio;
-            CustomProps["ganancia"] = Parametros.param.ganancia;
-            PhotonNetwork.SetPlayerCustomProperties(CustomProps);
-        }
 
-        /// <summary>
-        /// Se añaden los parametros de la sala al objeto Room
-        /// </summary>
-        public void SetRoomProperties()
-        {
-            CustomProps["monto"] = Parametros.param.monto;
-            CustomProps["precio"] = Parametros.param.precio;
-            CustomProps["ganancia"] = Parametros.param.ganancia;
-            Debug.Log(CustomProps["monto"]);
-            PhotonNetwork.CurrentRoom.SetCustomProperties(CustomProps);
-            
-        }
 
 
         public void JoinRandomRoom()
@@ -188,17 +168,19 @@ namespace Com.MyCompany.MyGame
 
 
         /// <summary>
-        /// Función utilizada para saber si el jugador creará o se unirá a una sala
+        /// Redirige al registro del jugador y guarda la selección de crear o unirse a sala
         /// </summary>
         /// <param name="create">
-        /// Parametro booleano que indica si se está 
+        /// Parametro booleano que indica si se creará o no una sala
         /// </param>
         public void GoLogin(bool create)
         {
             createRoom = create;
             SwitchScenes(1);
         }
-
+        /// <summary>
+        /// Función utilizada para saber si el jugador creará o se unirá a una sala
+        /// </summary>
         public void CreateOrJoin()
         {
             if (PhotonNetwork.IsConnected)
@@ -225,6 +207,18 @@ namespace Com.MyCompany.MyGame
                 
 
             }
+        }
+
+        /// <summary>
+        /// Se añaden los parametros de la sala al objeto Room
+        /// </summary>
+        public void SetRoomProperties()
+        {
+            CustomProps["monto"] = Parametros.param.monto;
+            CustomProps["precio"] = Parametros.param.precio;
+            CustomProps["ganancia"] = Parametros.param.ganancia;
+            Debug.Log(CustomProps["monto"]);
+            PhotonNetwork.CurrentRoom.SetCustomProperties(CustomProps);
         }
 
         public void ListarSalas()
@@ -288,6 +282,9 @@ namespace Com.MyCompany.MyGame
             PhotonNetwork.LoadLevel("06 Sala");
         }           
 
+        /// <summary>
+        /// Se lista a los jugadores dentro de la sala actual
+        /// </summary>
         private void PlayersInRoom()
         {
             int i = System.Convert.ToInt32(PhotonNetwork.CurrentRoom.PlayerCount);            

@@ -23,6 +23,8 @@ namespace Com.MyCompany.MyGame
         // Store the PlayerPref Key to avoid typos
         const string playerNamePrefKey = "PlayerName";
 
+        ExitGames.Client.Photon.Hashtable CustomProps = new ExitGames.Client.Photon.Hashtable();
+
 
         #endregion
 
@@ -71,9 +73,16 @@ namespace Com.MyCompany.MyGame
                 return;
             }
             PhotonNetwork.NickName = value;
-
-
             PlayerPrefs.SetString(playerNamePrefKey, value);
+            SetPlayerProperties();
+        }
+
+        public void SetPlayerProperties()
+        {
+            ExitGames.Client.Photon.Hashtable PlayerCustomProps = new ExitGames.Client.Photon.Hashtable();
+            CustomProps["paga"] = new bool[10];
+            CustomProps["llega"] = new bool[10];
+            PhotonNetwork.SetPlayerCustomProperties(CustomProps);
         }
 
 
