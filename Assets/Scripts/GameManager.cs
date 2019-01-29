@@ -31,6 +31,8 @@ namespace Com.MyCompany.MyGame
 
         private static bool createRoom;
 
+        private Dictionary<string, RoomInfo> cachedRoomList;
+
 
         #region Photon Callbacks
 
@@ -69,6 +71,11 @@ namespace Com.MyCompany.MyGame
             }
         }
 
+        public override void OnRoomListUpdate(List<RoomInfo> roomList)
+        {
+            UpdateCachedRoomList(roomList);
+        }
+
         #endregion
 
 
@@ -77,9 +84,9 @@ namespace Com.MyCompany.MyGame
 
         #region MonoBehaviour Callbacks
         // Use this for initialization
-        void Awake()
+        public void Awake()
         {
-            //DontDestroyOnLoad(this);
+            cachedRoomList = new Dictionary<string, RoomInfo>();
         }
 
         void Start()
@@ -136,24 +143,15 @@ namespace Com.MyCompany.MyGame
             if (cantidad <= 20)
             {
                 PhotonNetwork.CreateRoom(PhotonNetwork.LocalPlayer.NickName, new RoomOptions
-                {
-                    //CustomRoomProperties =  {
-                    //    {"monto",Parametros.param.monto },
-                    //    {"precio",Parametros.param.precio },
-                    //    {"ganancia",Parametros.param.ganancia },
-                    //},            
+                {           
                     MaxPlayers = System.Convert.ToByte(cantidad),
                     IsVisible = true,
                 });
 
-                SaveRoom();
-                //SetPlayerProperties();            
+                //SaveRoom();          
                 SwitchScenes(5);
             }
         }
-
-
-
 
         public void JoinRandomRoom()
         {
@@ -165,7 +163,6 @@ namespace Com.MyCompany.MyGame
             string SelectedRoom = PhotonNetwork.MasterClient.NickName;
             PhotonNetwork.JoinRoom(SelectedRoom);
         }
-
 
         /// <summary>
         /// Redirige al registro del jugador y guarda la selección de crear o unirse a sala
@@ -221,24 +218,31 @@ namespace Com.MyCompany.MyGame
             PhotonNetwork.CurrentRoom.SetCustomProperties(CustomProps);
         }
 
+        /// <summary>
+        /// Se obtiene una lista de todos los jugadores Host para listar la sala que crearon
+        /// </summary>
         public void ListarSalas()
         {
+            List<string> roomList = new List<string>();
+            int i = 0;
             if (PhotonNetwork.CurrentLobby.IsDefault)
             {
                 Debug.Log("Lobby is Default");
-                string sqlLobbyFilter = "C0 = 0";
-                PhotonNetwork.GetCustomRoomList(PhotonNetwork.CurrentLobby, sqlLobbyFilter);
-                Debug.Log(PhotonNetwork.CountOfRooms);
-                //PhotonNetwork.room
-            }
-            //LoadRoom();
-            //foreach (string str in RoomList)
-            //{
-            //    Debug.Log(str);
-            //    txt.text = str;
-            //}
-                                                
+                string sqlLobbyFilter = "C0 = 0";                 
+                PhotonNetwork.GetCustomRoomList(PhotonNetwork.CurrentLobby, sqlLobbyFilter);                                
 
+                Debug.Log("N° of Rooms: "+PhotonNetwork.CountOfRooms);
+                Debug.Log("N° of Players: " + PhotonNetwork.CountOfPlayers);
+                
+                foreach(Player player in PhotonNetwork.PlayerList)
+                {
+                    Debug.Log(i);
+                    if (player.IsMasterClient)
+                    {
+                        roomList.Add(player.NickName);
+                    }
+                }
+            }                                                     
         }
 
         public void SaveRoom()
@@ -296,6 +300,41 @@ namespace Com.MyCompany.MyGame
                 
             }
         }
+
+
+        private void UpdateCachedRoomList(List<RoomInfo> roomList)
+        {
+            Debug.Log("UpdateCachedRoomList");
+            foreach (RoomInfo info in roomList)
+            {
+                Debug.Log(info.Name);
+                // Remove room from cached room list if it got closed, became invisible or was marked as removed
+                if (!info.IsOpen || !info.IsVisible || info.RemovedFromList)
+                {
+                    if (cachedRoomList.ContainsKey(info.Name))
+                    {
+                        cachedRoomList.Remove(info.Name);
+                    }
+
+                    continue;
+                }
+
+                // Update cached room info
+                if (cachedRoomList.ContainsKey(info.Name))
+                {
+                    cachedRoomList[info.Name] = info;
+                }
+                // Add new room info to cache
+                else
+                {
+                    cachedRoomList.Add(info.Name, info);
+                }
+                Debug.Log("Sala " + cachedRoomList[info.Name]);
+            }
+            
+        }
+
+
 
         #endregion
     }

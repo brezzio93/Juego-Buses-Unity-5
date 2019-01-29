@@ -149,23 +149,7 @@ namespace Com.MyCompany.MyGame
                 PhotonNetwork.GameVersion = gameVersion;
                 PhotonNetwork.ConnectUsingSettings();                
 
-                EmptySaveFile();
-                
-
             }
-        }
-
-        /// <summary>
-        /// Vacía el archivo con la información de las salas
-        /// </summary>
-        public void EmptySaveFile()
-        {
-            Debug.Log("EmptySaveFiles()");
-            BinaryFormatter bf = new BinaryFormatter();
-            FileStream file = File.Create(Application.persistentDataPath + "/RoomList.dat");            
-            bf.Serialize(file, "");
-            file.Close();
-
         }
 
         #endregion
