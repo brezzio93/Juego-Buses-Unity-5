@@ -31,7 +31,22 @@ namespace Com.MyCompany.MyGame
 
         private static bool createRoom;
 
+
+        private List<string> roomName = new List<string>();
         private Dictionary<string, RoomInfo> cachedRoomList;
+
+
+
+        [SerializeField]
+        private GameObject buttonTemplate;
+
+        [SerializeField]
+        private int[] intArray;
+
+        private List<GameObject> buttons;
+
+
+
 
 
         #region Photon Callbacks
@@ -85,7 +100,7 @@ namespace Com.MyCompany.MyGame
         #region MonoBehaviour Callbacks
         // Use this for initialization
         public void Awake()
-        {
+        {            
             cachedRoomList = new Dictionary<string, RoomInfo>();
         }
 
@@ -100,7 +115,10 @@ namespace Com.MyCompany.MyGame
 
             if(SceneName == "02 Lobby")
             {
-                if (PhotonNetwork.IsConnected) ListarSalas();
+                if (PhotonNetwork.IsConnected)
+                {
+                    //ListarSalas();
+                }
 
             }
             
@@ -158,10 +176,9 @@ namespace Com.MyCompany.MyGame
             PhotonNetwork.JoinRandomRoom();
         }
 
-        public void JoinSelectedRoom()
-        {
-            string SelectedRoom = PhotonNetwork.MasterClient.NickName;
-            PhotonNetwork.JoinRoom(SelectedRoom);
+        public void JoinSelectedRoom(string roomName)
+        {            
+            PhotonNetwork.JoinRoom(roomName);
         }
 
         /// <summary>
@@ -218,32 +235,7 @@ namespace Com.MyCompany.MyGame
             PhotonNetwork.CurrentRoom.SetCustomProperties(CustomProps);
         }
 
-        /// <summary>
-        /// Se obtiene una lista de todos los jugadores Host para listar la sala que crearon
-        /// </summary>
-        public void ListarSalas()
-        {
-            List<string> roomList = new List<string>();
-            int i = 0;
-            if (PhotonNetwork.CurrentLobby.IsDefault)
-            {
-                Debug.Log("Lobby is Default");
-                string sqlLobbyFilter = "C0 = 0";                 
-                PhotonNetwork.GetCustomRoomList(PhotonNetwork.CurrentLobby, sqlLobbyFilter);                                
-
-                Debug.Log("N° of Rooms: "+PhotonNetwork.CountOfRooms);
-                Debug.Log("N° of Players: " + PhotonNetwork.CountOfPlayers);
-                
-                foreach(Player player in PhotonNetwork.PlayerList)
-                {
-                    Debug.Log(i);
-                    if (player.IsMasterClient)
-                    {
-                        roomList.Add(player.NickName);
-                    }
-                }
-            }                                                     
-        }
+        
 
         public void SaveRoom()
         {
@@ -304,16 +296,16 @@ namespace Com.MyCompany.MyGame
 
         private void UpdateCachedRoomList(List<RoomInfo> roomList)
         {
-            Debug.Log("UpdateCachedRoomList");
             foreach (RoomInfo info in roomList)
             {
-                Debug.Log(info.Name);
+
                 // Remove room from cached room list if it got closed, became invisible or was marked as removed
                 if (!info.IsOpen || !info.IsVisible || info.RemovedFromList)
                 {
                     if (cachedRoomList.ContainsKey(info.Name))
                     {
                         cachedRoomList.Remove(info.Name);
+                        roomName.Remove(info.Name);
                     }
 
                     continue;
@@ -328,11 +320,55 @@ namespace Com.MyCompany.MyGame
                 else
                 {
                     cachedRoomList.Add(info.Name, info);
+                    roomName.Add(info.Name);
                 }
-                Debug.Log("Sala " + cachedRoomList[info.Name]);
+                
             }
-            
+            ListarSalas(roomName);       
         }
+
+
+        
+
+        /// <summary>
+        /// Se obtiene una lista de todas las salas existentes
+        /// </summary>
+        public void ListarSalas(List<string> roomList)
+        {
+            string[] yo= roomList.ToArray();
+            buttons = new List<GameObject>();
+            foreach (string info in yo)
+            {
+                Debug.Log("Sala " + info);
+            }
+
+
+            if (buttons.Count > 0)
+            {
+                foreach (GameObject button in buttons)
+                    Destroy(button.gameObject);
+            }
+            buttons.Clear();
+
+            
+            foreach (int i in intArray)
+            {
+                Debug.Log(i);
+                GameObject button = Instantiate(buttonTemplate) as GameObject;
+                button.SetActive(true);
+                button.GetComponent<ButtonListButton>().SetText(yo[i]);
+                button.transform.SetParent(buttonTemplate.transform.parent, false);
+            }
+
+        }       
+
+        public void ButtonClicked(string textString)
+        {
+            Debug.Log(textString);
+        }
+
+
+
 
 
 
