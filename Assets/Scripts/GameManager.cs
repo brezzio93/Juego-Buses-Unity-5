@@ -37,6 +37,10 @@ namespace Com.MyCompany.MyGame
 
 
 
+
+        private ButtonListControl buttonListControl;
+
+
         [SerializeField]
         private GameObject buttonTemplate;
 
@@ -100,20 +104,21 @@ namespace Com.MyCompany.MyGame
         #region MonoBehaviour Callbacks
         // Use this for initialization
         public void Awake()
-        {            
+        {
+            DontDestroyOnLoad(this);
             cachedRoomList = new Dictionary<string, RoomInfo>();
         }
 
         void Start()
         {
             currentScene = SceneManager.GetActiveScene();
-            SceneName = currentScene.name;                                        
+            SceneName = currentScene.name;            
         }
 
         void Update()
         {
 
-            if(SceneName == "02 Lobby")
+            if(SceneName == "03 Lobby")
             {
                 if (PhotonNetwork.IsConnected)
                 {
@@ -307,7 +312,6 @@ namespace Com.MyCompany.MyGame
                         cachedRoomList.Remove(info.Name);
                         roomName.Remove(info.Name);
                     }
-
                     continue;
                 }
 
@@ -322,22 +326,26 @@ namespace Com.MyCompany.MyGame
                     cachedRoomList.Add(info.Name, info);
                     roomName.Add(info.Name);
                 }
-                
+
             }
-            ListarSalas(roomName);       
+            if (SceneName == "03 Lobby")
+            {
+                ListarSalas(roomName);
+            }
         }
 
 
-        
 
-        /// <summary>
-        /// Se obtiene una lista de todas las salas existentes
-        /// </summary>
-        public void ListarSalas(List<string> roomList)
+
+            /// <summary>
+            /// Se obtiene una lista de todas las salas existentes
+            /// </summary>
+            public void ListarSalas(List<string> roomList)
         {
-            string[] yo= roomList.ToArray();
+            string[] room= roomList.ToArray();
+            
             buttons = new List<GameObject>();
-            foreach (string info in yo)
+            foreach (string info in room)
             {
                 Debug.Log("Sala " + info);
             }
@@ -351,16 +359,16 @@ namespace Com.MyCompany.MyGame
             buttons.Clear();
 
             
-            foreach (int i in intArray)
+            for (int i = 0; i < room.Length; i++)
             {
-                Debug.Log(i);
                 GameObject button = Instantiate(buttonTemplate) as GameObject;
                 button.SetActive(true);
-                button.GetComponent<ButtonListButton>().SetText(yo[i]);
+
+                button.GetComponent<ButtonListButton>().SetText(room[i]);
+
                 button.transform.SetParent(buttonTemplate.transform.parent, false);
             }
-
-        }       
+        }
 
         public void ButtonClicked(string textString)
         {

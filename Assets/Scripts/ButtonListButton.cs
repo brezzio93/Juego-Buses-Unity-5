@@ -24,7 +24,7 @@ namespace Com.MyCompany.MyGame
 
         public void JoinRoom()
         {
-            buttonControl.JoinSelectedRoom(myTextString);
+            buttonControl.ButtonClicked (myTextString);
         }
     }
 }
