@@ -1,13 +1,6 @@
-﻿using UnityEngine;
+﻿using Photon.Pun;
+using UnityEngine;
 using UnityEngine.UI;
-
-
-using Photon.Pun;
-using Photon.Realtime;
-
-
-using System.Collections;
-
 
 namespace Com.MyCompany.MyGame
 {
@@ -15,29 +8,24 @@ namespace Com.MyCompany.MyGame
     /// Player name input field. Let the user input his name, will appear above the player in the game.
     /// </summary>
     [RequireComponent(typeof(InputField))]
+
     public class PlayerNameInputField : MonoBehaviour
     {
+        public PlayerParameters parametros = new PlayerParameters();
+
         #region Private Constants
 
-
         // Store the PlayerPref Key to avoid typos
-        const string playerNamePrefKey = "PlayerName";
+        private const string playerNamePrefKey = "PlayerName";
 
-        ExitGames.Client.Photon.Hashtable CustomProps = new ExitGames.Client.Photon.Hashtable();
+        private ExitGames.Client.Photon.Hashtable CustomProps = new ExitGames.Client.Photon.Hashtable();
 
-
-        #endregion
-
+        #endregion Private Constants
 
         #region MonoBehaviour CallBacks
 
-
-        /// <summary>
-        /// MonoBehaviour method called on GameObject by Unity during initialization phase.
-        /// </summary>
-        void Start()
+        private void Start()
         {
-
             string defaultName = string.Empty;
             InputField _inputField = this.GetComponent<InputField>();
             if (_inputField != null)
@@ -49,19 +37,15 @@ namespace Com.MyCompany.MyGame
                 }
             }
 
-
             PhotonNetwork.NickName = defaultName;
         }
 
-
-        #endregion
-
+        #endregion MonoBehaviour CallBacks
 
         #region Public Methods
 
-
         /// <summary>
-        /// Sets the name of the player, and save it in the PlayerPrefs for future sessions.
+        /// Guarda el nombre del jugador para futuras sesiones.
         /// </summary>
         /// <param name="value">The name of the Player</param>
         public void SetPlayerName(string value)
@@ -69,24 +53,13 @@ namespace Com.MyCompany.MyGame
             // #Important
             if (string.IsNullOrEmpty(value))
             {
-                Debug.LogError("Player Name is null or empty");
+                //Debug.LogError("Player Name is null or empty");
                 return;
             }
             PhotonNetwork.NickName = value;
-            PlayerPrefs.SetString(playerNamePrefKey, value);
-            SetPlayerProperties();
+            PlayerPrefs.SetString(playerNamePrefKey, value);            
         }
 
-        public void SetPlayerProperties()
-        {
-            ExitGames.Client.Photon.Hashtable PlayerCustomProps = new ExitGames.Client.Photon.Hashtable();
-            CustomProps["paga"] = new bool[10];
-            CustomProps["llega"] = new bool[10];
-            PhotonNetwork.SetPlayerCustomProperties(CustomProps);
-        }
-
-
-        #endregion
+        #endregion Public Methods
     }
 }
-

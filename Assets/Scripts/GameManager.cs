@@ -1,57 +1,41 @@
-﻿using System;
-using System.Collections;
-using System.Runtime.Serialization.Formatters.Binary;
-using System.IO;
-
+﻿using Photon.Pun;
+using Photon.Realtime;
+using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.SceneManagement;
-
-
-using Photon.Pun;
-using Photon.Realtime;
-
 using UnityEngine.UI;
-using System.Collections.Generic;
 
 namespace Com.MyCompany.MyGame
 {
     public class GameManager : MonoBehaviourPunCallbacks
     {
+        private ServerManager server = new ServerManager();
+        private RoomParameters parameters = new RoomParameters();
 
         [SerializeField]
         private Text txt;
+
         [SerializeField]
         private Text nombreSala;
 
         private Scene currentScene;
         private string SceneName;
-        
+
         private static List<string> RoomList = new List<string>();
-        ExitGames.Client.Photon.Hashtable CustomProps = new ExitGames.Client.Photon.Hashtable();
+        private ExitGames.Client.Photon.Hashtable CustomProps = new ExitGames.Client.Photon.Hashtable();
 
         private static bool createRoom;
-
 
         private List<string> roomName = new List<string>();
         private Dictionary<string, RoomInfo> cachedRoomList;
 
-
-
-
-        private ButtonListControl buttonListControl;
-
+        private static GameManager gameManager;
+        public static GameManager instance;
 
         [SerializeField]
         private GameObject buttonTemplate;
 
-        [SerializeField]
-        private int[] intArray;
-
         private List<GameObject> buttons;
-
-
-
-
 
         #region Photon Callbacks
 
@@ -63,11 +47,9 @@ namespace Com.MyCompany.MyGame
             SceneManager.LoadScene(0);
         }
 
-
         public override void OnPlayerEnteredRoom(Player other)
         {
             Debug.LogFormat("OnPlayerEnteredRoom() {0}", other.NickName); // not seen if you're the player connecting
-
 
             if (PhotonNetwork.IsMasterClient)
             {
@@ -76,7 +58,6 @@ namespace Com.MyCompany.MyGame
                 //LoadArena();
             }
         }
-
 
         public override void OnPlayerLeftRoom(Player other)
         {
@@ -90,18 +71,12 @@ namespace Com.MyCompany.MyGame
             }
         }
 
-        public override void OnRoomListUpdate(List<RoomInfo> roomList)
-        {
-            UpdateCachedRoomList(roomList);
-        }
+        
 
-        #endregion
-
-
-
-
+        #endregion Photon Callbacks
 
         #region MonoBehaviour Callbacks
+
         // Use this for initialization
         public void Awake()
         {
@@ -109,39 +84,34 @@ namespace Com.MyCompany.MyGame
             cachedRoomList = new Dictionary<string, RoomInfo>();
         }
 
-        void Start()
+        private void Start()
         {
             currentScene = SceneManager.GetActiveScene();
-            SceneName = currentScene.name;            
+            SceneName = currentScene.name;
         }
 
-        void Update()
+        private void Update()
         {
-
-            if(SceneName == "03 Lobby")
+            if (SceneName == "03 Lobby")
             {
                 if (PhotonNetwork.IsConnected)
                 {
                     //ListarSalas();
                 }
-
             }
-            
+
             if (SceneName == "05 Espera")
-            {                
-                                
-                if (PhotonNetwork.IsMasterClient) PlayersInRoom();
-                else txt.text = "Esperando Jugadores... "+ PhotonNetwork.CurrentRoom.PlayerCount+" de "+ PhotonNetwork.CurrentRoom.MaxPlayers;
-                nombreSala.text = "Sala: " + PhotonNetwork.CurrentRoom.Name;                         
-
+            {
+                if (PhotonNetwork.InRoom)
+                {
+                    if (PhotonNetwork.IsMasterClient) PlayersInRoom();
+                    else txt.text = "Esperando Jugadores... " + PhotonNetwork.CurrentRoom.PlayerCount + " de " + PhotonNetwork.CurrentRoom.MaxPlayers;
+                    nombreSala.text = "Sala: " + PhotonNetwork.CurrentRoom.Name;
+                }
             }
-            
         }
 
-        #endregion
-
-
-
+        #endregion MonoBehaviour Callbacks
 
         #region Public Methods
 
@@ -157,21 +127,19 @@ namespace Com.MyCompany.MyGame
         }
 
         /// <summary>
-        /// Se crea la sala con los parametros ingresados por el Host 
+        /// Se crea la sala con los parametros ingresados por el Host
         ///  </summary>
         public void CrearSala()
         {
             Debug.Log("CrearSala()");
-            int cantidad = System.Convert.ToInt32(Parametros.param.cantidad);            
+            int cantidad = System.Convert.ToInt32(RoomParameters.param.cantidad);
             if (cantidad <= 20)
             {
                 PhotonNetwork.CreateRoom(PhotonNetwork.LocalPlayer.NickName, new RoomOptions
-                {           
+                {
                     MaxPlayers = System.Convert.ToByte(cantidad),
                     IsVisible = true,
                 });
-
-                //SaveRoom();          
                 SwitchScenes(5);
             }
         }
@@ -182,7 +150,7 @@ namespace Com.MyCompany.MyGame
         }
 
         public void JoinSelectedRoom(string roomName)
-        {            
+        {
             PhotonNetwork.JoinRoom(roomName);
         }
 
@@ -194,85 +162,37 @@ namespace Com.MyCompany.MyGame
         /// </param>
         public void GoLogin(bool create)
         {
-            createRoom = create;
+            ServerManager.createRoom = create;
+
             SwitchScenes(1);
         }
+
         /// <summary>
         /// Función utilizada para saber si el jugador creará o se unirá a una sala
         /// </summary>
         public void CreateOrJoin()
         {
-            if (PhotonNetwork.IsConnected)
-            { 
-                PhotonNetwork.JoinLobby();
-                Debug.Log("CreateOrJoin " + createRoom);
-                if (createRoom == true) SwitchScenes(4);
-                else SwitchScenes(3);
-                    //PhotonNetwork.JoinRandomRoom();
-            }
+            server.CreateOrJoin();
         }
-
 
         /// <summary>
         /// El host actualiza los parametros de la sala y comienza el juego
         /// </summary>
         public void ComenzarJuego()
-        {                    
+        {
             if (PhotonNetwork.IsMasterClient)
-            {                
-                SetRoomProperties();
+            {
+                parameters.SetRoomProperties();
                 Debug.Log("Monto (Sala): " + PhotonNetwork.CurrentRoom.CustomProperties["monto"]);
                 LoadArena();
-                
-
             }
         }
 
-        /// <summary>
-        /// Se añaden los parametros de la sala al objeto Room
-        /// </summary>
-        public void SetRoomProperties()
-        {
-            CustomProps["monto"] = Parametros.param.monto;
-            CustomProps["precio"] = Parametros.param.precio;
-            CustomProps["ganancia"] = Parametros.param.ganancia;
-            Debug.Log(CustomProps["monto"]);
-            PhotonNetwork.CurrentRoom.SetCustomProperties(CustomProps);
-        }
-
-        
-
-        public void SaveRoom()
-        {
-            BinaryFormatter bf = new BinaryFormatter();
-            FileStream file = File.Create(Application.persistentDataPath +"/RoomList.dat");
-            string nombreSala = PhotonNetwork.LocalPlayer.NickName;
-            bf.Serialize(file, nombreSala);
-            file.Close();
-            
-        }
-
-        public void LoadRoom()
-        {
-            if(File.Exists(Application.persistentDataPath + "/RoomList.dat"))
-            {
-                BinaryFormatter bf = new BinaryFormatter();                
-                FileStream file = File.Open(Application.persistentDataPath + "/RoomList.dat", FileMode.Open);
-                string nombreSala = (string)bf.Deserialize(file);
-                RoomList.Add(nombreSala);
-                file.Close();
-            }
-        }    
-
-        #endregion
-
-
-
-
+        #endregion Public Methods
 
         #region Private Methods
 
-        void LoadArena()
+        private void LoadArena()
         {
             if (!PhotonNetwork.IsMasterClient)
             {
@@ -281,29 +201,28 @@ namespace Com.MyCompany.MyGame
             Debug.LogFormat("PhotonNetwork : Player on the Room : {0}", PhotonNetwork.CurrentRoom.PlayerCount);
             //PhotonNetwork.LoadLevel("Room for " + PhotonNetwork.CurrentRoom.PlayerCount);
             PhotonNetwork.LoadLevel("06 Sala");
-        }           
+        }
 
         /// <summary>
         /// Se lista a los jugadores dentro de la sala actual
         /// </summary>
         private void PlayersInRoom()
         {
-            int i = System.Convert.ToInt32(PhotonNetwork.CurrentRoom.PlayerCount);            
-            txt.text = "Jugadores Conectados:\n"+System.Convert.ToString(PhotonNetwork.CurrentRoom.PlayerCount) 
+            int i = System.Convert.ToInt32(PhotonNetwork.CurrentRoom.PlayerCount);
+            txt.text = "Jugadores Conectados:\n" + System.Convert.ToString(PhotonNetwork.CurrentRoom.PlayerCount)
                                 + "/" + PhotonNetwork.CurrentRoom.MaxPlayers;
-            while (i != 0) {
+            while (i != 0)
+            {
                 i--;
-                Debug.Log("Players in Room: "+PhotonNetwork.PlayerList[i].NickName);
-                
+                Debug.Log("Players in Room: " + PhotonNetwork.PlayerList[i].NickName);
             }
         }
 
-
         private void UpdateCachedRoomList(List<RoomInfo> roomList)
         {
+            Debug.Log("UpdateCachedRoomList()");
             foreach (RoomInfo info in roomList)
             {
-
                 // Remove room from cached room list if it got closed, became invisible or was marked as removed
                 if (!info.IsOpen || !info.IsVisible || info.RemovedFromList)
                 {
@@ -326,7 +245,6 @@ namespace Com.MyCompany.MyGame
                     cachedRoomList.Add(info.Name, info);
                     roomName.Add(info.Name);
                 }
-
             }
             if (SceneName == "03 Lobby")
             {
@@ -334,22 +252,18 @@ namespace Com.MyCompany.MyGame
             }
         }
 
-
-
-
-            /// <summary>
-            /// Se obtiene una lista de todas las salas existentes
-            /// </summary>
-            public void ListarSalas(List<string> roomList)
+        /// <summary>
+        /// Se obtiene una lista de todas las salas existentes
+        /// </summary>
+        public void ListarSalas(List<string> roomList)
         {
-            string[] room= roomList.ToArray();
-            
+            string[] room = roomList.ToArray();
+
             buttons = new List<GameObject>();
             foreach (string info in room)
             {
                 Debug.Log("Sala " + info);
             }
-
 
             if (buttons.Count > 0)
             {
@@ -358,14 +272,11 @@ namespace Com.MyCompany.MyGame
             }
             buttons.Clear();
 
-            
             for (int i = 0; i < room.Length; i++)
             {
                 GameObject button = Instantiate(buttonTemplate) as GameObject;
                 button.SetActive(true);
-
                 button.GetComponent<ButtonListButton>().SetText(room[i]);
-
                 button.transform.SetParent(buttonTemplate.transform.parent, false);
             }
         }
@@ -375,12 +286,11 @@ namespace Com.MyCompany.MyGame
             Debug.Log(textString);
         }
 
+        public void SaveAvatar()
+        {
+            
+        }
 
-
-
-
-
-        #endregion
+        #endregion Private Methods
     }
 }
-

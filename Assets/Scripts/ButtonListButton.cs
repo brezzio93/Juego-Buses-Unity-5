@@ -1,6 +1,4 @@
-﻿using System.Collections;
-using System.Collections.Generic;
-using UnityEngine;
+﻿using UnityEngine;
 
 using UnityEngine.UI;
 
@@ -8,11 +6,11 @@ namespace Com.MyCompany.MyGame
 {
     public class ButtonListButton : MonoBehaviour
     {
-
         [SerializeField]
         private Text myText;
+
         [SerializeField]
-        private GameManager buttonControl;
+        private ServerManager buttonControl;
 
         private string myTextString;
 
@@ -22,10 +20,15 @@ namespace Com.MyCompany.MyGame
             myText.text = str;
         }
 
+        public void GetRoomName()
+        {
+            buttonControl.ButtonClicked(myTextString);
+        }
+
         public void JoinRoom()
         {
-            buttonControl.ButtonClicked (myTextString);
+            Debug.Log("Joining Room "+myTextString);
+            //buttonControl.JoinSelectedRoom(myTextString);
         }
     }
 }
-

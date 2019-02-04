@@ -1,45 +1,37 @@
-﻿using System.Collections;
-using System.Collections.Generic;
+﻿using Photon.Pun;
 using UnityEngine;
-using UnityEngine.UI;
 using UnityEngine.SceneManagement;
-
-using Photon.Pun;
-using Photon.Realtime;
-
+using UnityEngine.UI;
 
 public class Jugador : MonoBehaviourPunCallbacks
 {
     private Image avatar;
     private string nombre;
     private bool[] pago = new bool[10];
-    private bool[] llega = new bool[10];
     private int billetera;
+
     [SerializeField]
     private Text t_dias;
 
     private int dias = 0;
-    float probabilidad;
+    private float probabilidad;
 
     private int evasores = 0;
 
-
-
     // Start is called before the first frame update
-    void Start()
+    private void Start()
     {
-        billetera = System.Convert.ToInt32(PhotonNetwork.CurrentRoom.CustomProperties["monto"]);                
-        t_dias.text = "Día "+ System.Convert.ToString(dias+1);
+        billetera = System.Convert.ToInt32(PhotonNetwork.CurrentRoom.CustomProperties["monto"]);
+        t_dias.text = "Día " + System.Convert.ToString(dias + 1);
     }
 
     // Update is called once per frame
-    void Update()
+    private void Update()
     {
-        
     }
 
     /// <summary>
-    /// Revisa que el jugador pague su pasaje y en base a eso calcula la probabilidad de llegar junto con los 
+    /// Revisa que el jugador pague su pasaje y en base a eso calcula la probabilidad de llegar junto con los
     /// calculos del pasaje de bus
     /// </summary>
     /// <param name="button"></param>
@@ -62,52 +54,31 @@ public class Jugador : MonoBehaviourPunCallbacks
         }
     }
 
-
-
-
     /// <summary>
-    /// Se añade la selección del jugador a su historial de pago y se descuenta saldo de la billetera del jugador 
+    /// Se añade la selección del jugador a su historial de pago y se descuenta saldo de la billetera del jugador
     /// </summary>
     public void Pagar(bool button)
     {
-        if(button) Debug.Log("Se pagó hoy");
-        else        Debug.Log("No se pagó hoy");
+        if (button) Debug.Log("Se pagó hoy");
+        else Debug.Log("No se pagó hoy");
         //pago[dias] = button;
         PhotonNetwork.LocalPlayer.CustomProperties["paga"] = button;
         if (PhotonNetwork.LocalPlayer.CustomProperties["paga"].Equals(true))
-            billetera = billetera-System.Convert.ToInt32(PhotonNetwork.CurrentRoom.CustomProperties["precio"]);
-        
-
+            billetera = billetera - System.Convert.ToInt32(PhotonNetwork.CurrentRoom.CustomProperties["precio"]);
     }
 
     public void Llegar()
     {
         PhotonNetwork.LocalPlayer.CustomProperties["llega"] = CalcularViaje();
         if (PhotonNetwork.LocalPlayer.CustomProperties["llega"].Equals(true))
-            billetera = billetera+ System.Convert.ToInt32(PhotonNetwork.CurrentRoom.CustomProperties["ganancia"]);        
+            billetera = billetera + System.Convert.ToInt32(PhotonNetwork.CurrentRoom.CustomProperties["ganancia"]);
     }
-
 
     /// <summary>
     /// Calcula la probabilidad de llegar al destino en base a la cantidad de evasores totales
     /// </summary>
     public bool CalcularViaje()
     {
-        probabilidad=1f;
-        int i = 0, evasores = 0;
-        float x = 0f;
-        double uno = 1;
-        while (i != dias)
-        {
-            if (pago[i] == false)
-                evasores++;
-            i++;
-        }
-        //probabilidad = 1 - 1 / (1 + uno ^ (13 * (x - 0.5)));
-        //probabilidad=1/(1 ^ ( 13 *( x - 0.5 ) ) );
         return true;
-
     }
-
-    
 }
