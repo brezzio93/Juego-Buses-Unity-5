@@ -10,7 +10,7 @@ namespace Com.MyCompany.MyGame
         private Text myText;
 
         [SerializeField]
-        private ServerManager buttonControl;
+        private ServerManager server;
 
         private string myTextString;
 
@@ -22,7 +22,7 @@ namespace Com.MyCompany.MyGame
 
         public void GetRoomName()
         {
-            buttonControl.ButtonClicked(myTextString);
+            server.GetRoomName(myTextString);            
         }
 
         public void JoinRoom()

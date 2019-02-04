@@ -8,7 +8,7 @@ namespace Com.MyCompany.MyGame
 {
     public class ServerManager : MonoBehaviourPunCallbacks
     {
-        private RoomParameters Room = new RoomParameters();
+
         private List<string> roomName = new List<string>();
         private Dictionary<string, RoomInfo> cachedRoomList;
         private Scene currentScene;
@@ -18,7 +18,7 @@ namespace Com.MyCompany.MyGame
         private GameObject buttonTemplate;
 
         private List<GameObject> buttons;
-
+        public static string roomSelected;
         public static bool createRoom;
 
         // Use this for initialization
@@ -111,10 +111,12 @@ namespace Com.MyCompany.MyGame
             }
         }
 
-        public void ButtonClicked(string textString)
+        public void GetRoomName(string textString)
         {
-            PhotonNetwork.JoinRoom(textString);
+            roomSelected = textString;
+            Debug.Log(roomSelected);
         }
+
 
         public void UpdateCachedRoomList(List<RoomInfo> roomList)
         {

@@ -3,7 +3,6 @@ using Photon.Realtime;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.SceneManagement;
-using UnityEngine.UI;
 
 namespace Com.MyCompany.MyGame
 {
@@ -11,31 +10,13 @@ namespace Com.MyCompany.MyGame
     {
         private ServerManager server = new ServerManager();
         private RoomParameters parameters = new RoomParameters();
-
-        [SerializeField]
-        private Text txt;
-
-        [SerializeField]
-        private Text nombreSala;
-
         private Scene currentScene;
-        private string SceneName;
-
-        private static List<string> RoomList = new List<string>();
+        public static string SceneName;
         private ExitGames.Client.Photon.Hashtable CustomProps = new ExitGames.Client.Photon.Hashtable();
-
         private static bool createRoom;
-
-        private List<string> roomName = new List<string>();
-        private Dictionary<string, RoomInfo> cachedRoomList;
-
-        private static GameManager gameManager;
-        public static GameManager instance;
-
-        [SerializeField]
-        private GameObject buttonTemplate;
-
         private List<GameObject> buttons;
+
+        public static GameManager instance = null;
 
         #region Photon Callbacks
 
@@ -54,8 +35,6 @@ namespace Com.MyCompany.MyGame
             if (PhotonNetwork.IsMasterClient)
             {
                 Debug.LogFormat("OnPlayerEnteredRoom IsMasterClient {0}", PhotonNetwork.IsMasterClient); // called before OnPlayerLeftRoom
-
-                //LoadArena();
             }
         }
 
@@ -66,22 +45,18 @@ namespace Com.MyCompany.MyGame
             if (PhotonNetwork.IsMasterClient)
             {
                 Debug.LogFormat("OnPlayerLeftRoom IsMasterClient {0}", PhotonNetwork.IsMasterClient); // called before OnPlayerLeftRoom
-
-                //LoadArena();
             }
         }
-
-        
 
         #endregion Photon Callbacks
 
         #region MonoBehaviour Callbacks
 
-        // Use this for initialization
-        public void Awake()
-        {
-            DontDestroyOnLoad(this);
-            cachedRoomList = new Dictionary<string, RoomInfo>();
+        private void Awake()
+        {            
+            if (instance == null) instance = this;
+            else if (instance != this) Destroy(gameObject);
+            DontDestroyOnLoad(gameObject);
         }
 
         private void Start()
@@ -92,24 +67,9 @@ namespace Com.MyCompany.MyGame
 
         private void Update()
         {
-            if (SceneName == "03 Lobby")
-            {
-                if (PhotonNetwork.IsConnected)
-                {
-                    //ListarSalas();
-                }
-            }
 
-            if (SceneName == "05 Espera")
-            {
-                if (PhotonNetwork.InRoom)
-                {
-                    if (PhotonNetwork.IsMasterClient) PlayersInRoom();
-                    else txt.text = "Esperando Jugadores... " + PhotonNetwork.CurrentRoom.PlayerCount + " de " + PhotonNetwork.CurrentRoom.MaxPlayers;
-                    nombreSala.text = "Sala: " + PhotonNetwork.CurrentRoom.Name;
-                }
-            }
         }
+
 
         #endregion MonoBehaviour Callbacks
 
@@ -144,16 +104,6 @@ namespace Com.MyCompany.MyGame
             }
         }
 
-        public void JoinRandomRoom()
-        {
-            PhotonNetwork.JoinRandomRoom();
-        }
-
-        public void JoinSelectedRoom(string roomName)
-        {
-            PhotonNetwork.JoinRoom(roomName);
-        }
-
         /// <summary>
         /// Redirige al registro del jugador y guarda la selección de crear o unirse a sala
         /// </summary>
@@ -163,7 +113,6 @@ namespace Com.MyCompany.MyGame
         public void GoLogin(bool create)
         {
             ServerManager.createRoom = create;
-
             SwitchScenes(1);
         }
 
@@ -175,122 +124,6 @@ namespace Com.MyCompany.MyGame
             server.CreateOrJoin();
         }
 
-        /// <summary>
-        /// El host actualiza los parametros de la sala y comienza el juego
-        /// </summary>
-        public void ComenzarJuego()
-        {
-            if (PhotonNetwork.IsMasterClient)
-            {
-                parameters.SetRoomProperties();
-                Debug.Log("Monto (Sala): " + PhotonNetwork.CurrentRoom.CustomProperties["monto"]);
-                LoadArena();
-            }
-        }
-
         #endregion Public Methods
-
-        #region Private Methods
-
-        private void LoadArena()
-        {
-            if (!PhotonNetwork.IsMasterClient)
-            {
-                Debug.LogError("PhotonNetwork : Trying to Load a level but we are not the master Client");
-            }
-            Debug.LogFormat("PhotonNetwork : Player on the Room : {0}", PhotonNetwork.CurrentRoom.PlayerCount);
-            //PhotonNetwork.LoadLevel("Room for " + PhotonNetwork.CurrentRoom.PlayerCount);
-            PhotonNetwork.LoadLevel("06 Sala");
-        }
-
-        /// <summary>
-        /// Se lista a los jugadores dentro de la sala actual
-        /// </summary>
-        private void PlayersInRoom()
-        {
-            int i = System.Convert.ToInt32(PhotonNetwork.CurrentRoom.PlayerCount);
-            txt.text = "Jugadores Conectados:\n" + System.Convert.ToString(PhotonNetwork.CurrentRoom.PlayerCount)
-                                + "/" + PhotonNetwork.CurrentRoom.MaxPlayers;
-            while (i != 0)
-            {
-                i--;
-                Debug.Log("Players in Room: " + PhotonNetwork.PlayerList[i].NickName);
-            }
-        }
-
-        private void UpdateCachedRoomList(List<RoomInfo> roomList)
-        {
-            Debug.Log("UpdateCachedRoomList()");
-            foreach (RoomInfo info in roomList)
-            {
-                // Remove room from cached room list if it got closed, became invisible or was marked as removed
-                if (!info.IsOpen || !info.IsVisible || info.RemovedFromList)
-                {
-                    if (cachedRoomList.ContainsKey(info.Name))
-                    {
-                        cachedRoomList.Remove(info.Name);
-                        roomName.Remove(info.Name);
-                    }
-                    continue;
-                }
-
-                // Update cached room info
-                if (cachedRoomList.ContainsKey(info.Name))
-                {
-                    cachedRoomList[info.Name] = info;
-                }
-                // Add new room info to cache
-                else
-                {
-                    cachedRoomList.Add(info.Name, info);
-                    roomName.Add(info.Name);
-                }
-            }
-            if (SceneName == "03 Lobby")
-            {
-                ListarSalas(roomName);
-            }
-        }
-
-        /// <summary>
-        /// Se obtiene una lista de todas las salas existentes
-        /// </summary>
-        public void ListarSalas(List<string> roomList)
-        {
-            string[] room = roomList.ToArray();
-
-            buttons = new List<GameObject>();
-            foreach (string info in room)
-            {
-                Debug.Log("Sala " + info);
-            }
-
-            if (buttons.Count > 0)
-            {
-                foreach (GameObject button in buttons)
-                    Destroy(button.gameObject);
-            }
-            buttons.Clear();
-
-            for (int i = 0; i < room.Length; i++)
-            {
-                GameObject button = Instantiate(buttonTemplate) as GameObject;
-                button.SetActive(true);
-                button.GetComponent<ButtonListButton>().SetText(room[i]);
-                button.transform.SetParent(buttonTemplate.transform.parent, false);
-            }
-        }
-
-        public void ButtonClicked(string textString)
-        {
-            Debug.Log(textString);
-        }
-
-        public void SaveAvatar()
-        {
-            
-        }
-
-        #endregion Private Methods
     }
 }
