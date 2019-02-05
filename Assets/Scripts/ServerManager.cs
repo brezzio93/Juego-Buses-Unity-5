@@ -2,6 +2,7 @@
 using Photon.Realtime;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.UI;
 using UnityEngine.SceneManagement;
 
 namespace Com.MyCompany.MyGame
@@ -10,11 +11,14 @@ namespace Com.MyCompany.MyGame
     {
         private List<string> roomName = new List<string>();
         private Dictionary<string, RoomInfo> cachedRoomList;
+        private RoomParameters parameters = new RoomParameters();
         private Scene currentScene;
         private string SceneName;
 
         [SerializeField]
         private GameObject buttonTemplate;
+        [SerializeField]
+        private Image avatar;
 
         private List<GameObject> buttons;
         public static string roomSelected;
@@ -30,6 +34,7 @@ namespace Com.MyCompany.MyGame
         {
             currentScene = SceneManager.GetActiveScene();
             SceneName = currentScene.name;
+            buttons = new List<GameObject>();
         }
 
         #region Photon Callbacks
@@ -112,6 +117,7 @@ namespace Com.MyCompany.MyGame
                     IsVisible = true,
                 });
                 SwitchScenes(5);
+                parameters.SetRoomProperties();
             }
         }
 
@@ -164,12 +170,6 @@ namespace Com.MyCompany.MyGame
             Debug.Log("ListarSalas()");
             string[] room = roomList.ToArray();
 
-            buttons = new List<GameObject>();
-            foreach (string info in room)
-            {
-                Debug.Log("Sala " + info);
-            }
-
             if (buttons.Count > 0)
             {
                 foreach (GameObject button in buttons)
@@ -182,7 +182,10 @@ namespace Com.MyCompany.MyGame
                 GameObject button = Instantiate(buttonTemplate) as GameObject;
                 button.SetActive(true);
                 button.GetComponent<ButtonListButton>().SetText(room[i]);
+                //
                 button.transform.SetParent(buttonTemplate.transform.parent, false);
+
+                buttons.Add(button.gameObject);
             }
         }
     }

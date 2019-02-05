@@ -72,6 +72,7 @@ namespace Com.MyCompany.MyGame
             CustomProps["monto"] = param.monto;
             CustomProps["precio"] = param.precio;
             CustomProps["ganancia"] = param.ganancia;
+            CustomProps["Imagen"] = PhotonNetwork.MasterClient.CustomProperties["Avatar"];
             PhotonNetwork.CurrentRoom.SetCustomProperties(CustomProps);
         }
 

@@ -49,7 +49,7 @@ public class Jugador : MonoBehaviourPunCallbacks
         else
         {
             Debug.Log("Finalizado");
-            PhotonNetwork.LeaveRoom();
+            PhotonNetwork.LeaveRoom();            
             SceneManager.LoadScene(0);
         }
     }

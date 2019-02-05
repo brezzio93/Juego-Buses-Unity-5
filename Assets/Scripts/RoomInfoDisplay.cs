@@ -60,7 +60,7 @@ namespace Com.MyCompany.MyGame
         {
             if (PhotonNetwork.IsMasterClient)
             {
-                parameters.SetRoomProperties();
+                //parameters.SetRoomProperties();
                 //Debug.Log("Monto (Sala): " + PhotonNetwork.CurrentRoom.CustomProperties["monto"]);
                 LoadArena();
             }
