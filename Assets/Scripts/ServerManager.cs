@@ -8,7 +8,6 @@ namespace Com.MyCompany.MyGame
 {
     public class ServerManager : MonoBehaviourPunCallbacks
     {
-
         private List<string> roomName = new List<string>();
         private Dictionary<string, RoomInfo> cachedRoomList;
         private Scene currentScene;
@@ -84,12 +83,17 @@ namespace Com.MyCompany.MyGame
         /// </summary>
         public void CreateOrJoin()
         {
-            if (PhotonNetwork.IsConnected)
+            Debug.Log(PlayerParameters.ChosenName);
+            
+            if (PlayerParameters.ChosenName != null)
             {
-                PhotonNetwork.JoinLobby();
-                Debug.Log("CreateOrJoin " + createRoom);
-                if (createRoom == true) SwitchScenes(4);
-                else SwitchScenes(3);
+                if (PhotonNetwork.IsConnected)
+                {
+                    PhotonNetwork.JoinLobby();
+                    Debug.Log("CreateOrJoin " + createRoom);
+                    if (createRoom == true) SwitchScenes(4);
+                    else SwitchScenes(3);
+                }
             }
         }
 
@@ -116,7 +120,6 @@ namespace Com.MyCompany.MyGame
             roomSelected = textString;
             Debug.Log(roomSelected);
         }
-
 
         public void UpdateCachedRoomList(List<RoomInfo> roomList)
         {
